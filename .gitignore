@@ -1,0 +1,18 @@
+# Personal preparation must never be committed.
+authorized_keys
+ssh_host_*
+mpc_sample_*ed25519*
+*.pub
+*.key
+*.pem
+*.ppk
+SSH_START.txt
+SSH_AUTH_LOG.txt
+*.log
+.pending
+.DS_Store
+._*
+__MACOSX/
+__pycache__/
+dist/
+*.zip

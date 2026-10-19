@@ -1,0 +1,14 @@
+{
+  "value0": {
+    "scripts": [
+      {
+        "path": "autorun.sh",
+        "askQuestion": true,
+        "message": "Start temporary USB-only SSH server?",
+        "yesButtonText": "Start SSH",
+        "noButtonText": "Cancel"
+      }
+    ],
+    "files": []
+  }
+}

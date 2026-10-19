@@ -1,0 +1,7 @@
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+# These three files form an exact-byte checksum contract, including line endings.
+autorun/autorun.json -text
+autorun/autorun.sh -text
+autorun/autorun.check -text
