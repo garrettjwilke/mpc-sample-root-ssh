@@ -15,6 +15,13 @@ address. Do not replace it with the computer's address. Other firmware versions
 and beta builds have not been verified. macOS/Linux setup is host-tested;
 the Windows setup script is provided but has not been run on Windows by the author.
 
+> **Important: remove the SD card containing `autorun` before powering on the MPC.**
+> Wait until the MPC has fully booted, then insert/mount the card to start SSH.
+> Booting with the autorun card already inserted has been observed to hang during
+> project loading. If this happens, **press and hold the power button until the
+> MPC switches off**, then remove the card before powering on again. A forced
+> shutdown can lose unsaved work; use it only if the device is stuck.
+
 ## 1. Download
 
 Download **mpc-sample-root-ssh-v1.1.0.zip** from
@@ -128,9 +135,10 @@ private key on the computer. Safely eject the SD card from the computer.
 4. When asked **Start temporary USB-only SSH server?**, choose **Start SSH**.
 5. Allow up to **45 seconds** for USB networking and SSH startup.
 
-Insert/mount the card after boot: this prompted autorun is skipped by the
-initial boot scan in the researched firmware. No USB controller-mode switch
-or Wi-Fi connection is required for this procedure.
+Insert/mount the card only after boot. Starting with the autorun card already
+inserted is a known unresolved startup issue; follow the recovery note above
+if project loading hangs. No USB controller-mode switch or Wi-Fi connection
+is required for this procedure.
 
 ## 5. Connect from the computer
 
@@ -162,6 +170,10 @@ Disconnecting the client does not stop the server.
 
 ## 6. Troubleshooting
 
+- **MPC hangs during project loading after booting with the autorun card inserted:**
+  press and hold the power button until the MPC switches off. Remove the card,
+  power on without it, and wait for the main screen before inserting/mounting
+  the card again. The underlying cold-boot issue has not yet been fixed.
 - **No prompt:** check firmware 1.3.0.12, the folder layout, and insertion/mounting
   after full boot. Do not edit the manifest to bypass the prompt.
 - **Connection refused:** wait up to 45 seconds. If it persists, check
