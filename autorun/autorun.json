@@ -3,7 +3,7 @@
     "scripts": [
       {
         "path": "autorun.sh",
-        "askQuestion": true,
+        "askQuestion": false,
         "message": "Start temporary USB-only SSH server?",
         "yesButtonText": "Start SSH",
         "noButtonText": "Cancel"

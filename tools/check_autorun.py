@@ -11,7 +11,7 @@ def verify(root):
     payload = json.loads(raw)['value0']
     if len(payload['scripts']) != 1 or payload['scripts'][0]['path'] != 'autorun.sh':
         raise ValueError('Unexpected script list')
-    if payload['scripts'][0]['askQuestion'] is not True or payload['files'] != []:
+    if payload['scripts'][0]['askQuestion'] is not False or payload['files'] != []:
         raise ValueError('Unexpected prompt/files contract')
     digest = hashlib.sha256(raw + (folder / 'autorun.sh').read_bytes()
                             + b'f7bed1c9-7e90-4731-9194-c996666b4331').hexdigest()

@@ -29,7 +29,7 @@ def main():
                    for name, data in sorted(contents.items())).encode('ascii')
     out = ROOT / 'dist'
     out.mkdir(exist_ok=True)
-    archive = out / 'mpc-sample-root-ssh-v1.1.0.zip'
+    archive = out / 'mpc-sample-root-ssh-v1.2.0.zip'
     with ZipFile(archive, 'w', ZIP_DEFLATED) as zipped:
         for name, data in contents.items():
             zipped.writestr('mpc-sample-root-ssh/' + name, data)

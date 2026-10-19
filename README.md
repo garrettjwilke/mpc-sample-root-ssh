@@ -5,8 +5,14 @@ By **puckcv** on MPC-Forums. Target: **Akai MPC Sample AC50/AZ07, firmware 1.3.0
 Starts the built-in OpenSSH server through the stock SD autorun mechanism.
 No firmware flashing or modified Akai binary is required. The device-side
 autorun in this repository is the exact version the author successfully used
-to log in on 19 October 2026. It waits up to 45 seconds for USB networking,
-fixing the earlier `Cannot assign requested address` startup failure.
+to log in on 19 October 2026. Version 1.2 starts SSH in a separate temporary
+service: waiting for USB happens outside autorun, with all runtime logs in RAM.
+SSH starts automatically when the prepared SD is detected; there is no dialog.
+
+**Hardware validation:** two full cold boots with the prepared SD inserted,
+successful root SSH on both boots, and normal interface/sound confirmed by
+the device owner. The stock application hash and launch configuration remained
+unchanged. This is validation on one MPC Sample, not on every firmware/device.
 
 **USB address: `192.168.155.1` · SSH port: `2222` · User: `root`**
 
@@ -15,16 +21,14 @@ address. Do not replace it with the computer's address. Other firmware versions
 and beta builds have not been verified. macOS/Linux setup is host-tested;
 the Windows setup script is provided but has not been run on Windows by the author.
 
-> **Important: remove the SD card containing `autorun` before powering on the MPC.**
-> Wait until the MPC has fully booted, then insert/mount the card to start SSH.
-> Booting with the autorun card already inserted has been observed to hang during
-> project loading. If this happens, **press and hold the power button until the
-> MPC switches off**, then remove the card before powering on again. A forced
-> shutdown can lose unsaved work; use it only if the device is stuck.
+> **Version 1.2 starts USB-only root SSH automatically with your personal keys.**
+> You can leave the prepared SD inserted during startup or insert it after boot.
+> To start without SSH, boot without the autorun card. Removing SD later does not
+> stop a server that has already started.
 
 ## 1. Download
 
-Download **mpc-sample-root-ssh-v1.1.0.zip** from
+Download **mpc-sample-root-ssh-v1.2.0.zip** from
 [Releases](https://github.com/orrpunk-art/mpc-sample-root-ssh/releases/latest)
 and extract it on your computer. Use this fresh public download for each new
 person/device. Do not download or reuse somebody else's prepared SD folder.
@@ -128,17 +132,20 @@ private key on the computer. Safely eject the SD card from the computer.
 
 ## 4. Start SSH on the MPC
 
-1. Boot the MPC **without this SD card** and wait for the normal main screen.
-2. Connect the MPC to the computer using the **USB-C data connection**.
-3. Insert the SD card into the MPC's **own SD slot**. If necessary, mount it
-   using the MPC's normal storage interface.
-4. When asked **Start temporary USB-only SSH server?**, choose **Start SSH**.
-5. Allow up to **45 seconds** for USB networking and SSH startup.
+1. Save your project and safely eject the prepared SD from the computer.
+2. Connect the MPC to the computer using a **USB-C data cable**.
+3. Either insert the SD into the MPC's own slot before powering on, or insert/
+   mount it through the normal storage interface after the MPC has booted.
+4. SSH starts **automatically**. There is no **Start SSH** prompt in version 1.2.
+5. Allow normal MPC startup and up to **45 seconds** for USB networking.
 
-Insert/mount the card only after boot. Starting with the autorun card already
-inserted is a known unresolved startup issue; follow the recovery note above
-if project loading hangs. No USB controller-mode switch or Wi-Fi connection
-is required for this procedure.
+No USB mass-storage/controller-mode switch or Wi-Fi connection is required.
+USB mass-storage mode exposes the SD to the computer; it is a different use
+from running the MPC normally with USB networking for SSH.
+
+If USB was absent for the entire 45-second wait, connect the cable and safely
+unmount/reinsert/mount the SD, or normally reboot with the card and cable attached.
+The SSH worker times out independently; it does not make autorun wait for USB.
 
 ## 5. Connect from the computer
 
@@ -170,19 +177,28 @@ Disconnecting the client does not stop the server.
 
 ## 6. Troubleshooting
 
-- **MPC hangs during project loading after booting with the autorun card inserted:**
-  press and hold the power button until the MPC switches off. Remove the card,
-  power on without it, and wait for the main screen before inserting/mounting
-  the card again. The underlying cold-boot issue has not yet been fixed.
-- **No prompt:** check firmware 1.3.0.12, the folder layout, and insertion/mounting
-  after full boot. Do not edit the manifest to bypass the prompt.
-- **Connection refused:** wait up to 45 seconds. If it persists, check
-  `autorun/SSH_START.txt` and `autorun/SSH_AUTH_LOG.txt` on the SD card after
-  safely ejecting it from the MPC and putting it in the computer.
-- **`Cannot assign requested address`:** USB IP was not available at server
-  startup. Confirm the USB-C data cable/computer connection. This version waits
-  for the USB IP; if the 45-second wait expires, reconnect the cable and rerun
-  autorun through normal safe SD eject/reinsert/mount.
+- **No Start SSH prompt:** expected in version 1.2. Connect using the command
+  above; this version starts SSH automatically when the prepared card is detected.
+- **Connection refused:** wait up to 45 seconds. Check that this SD was prepared
+  with your keys, the folder layout is correct, and the MPC is in normal operation
+  rather than USB mass-storage mode. If USB was connected too late, safely
+  unmount/reinsert/mount the card or normally reboot with USB attached.
+- **USB/network startup errors:** after obtaining SSH, inspect the RAM logs:
+
+  ```sh
+  systemctl status mpc-sample-usb-ssh.service --no-pager
+  cat /run/mpc-sample-ssh/setup.log
+  cat /run/mpc-sample-ssh/worker.log
+  ```
+
+  Version 1.2 does not create new `SSH_START.txt` / `SSH_AUTH_LOG.txt` on SD.
+  Old SD reports can remain from an earlier version; their timestamps do not
+  describe the current run.
+- **MPC hangs during project loading:** if the device is stuck, press and hold
+  power until it switches off, remove the SD, then boot without it. Restore the
+  working backup if needed. A forced shutdown can lose unsaved work. Earlier
+  versions could hang when booted with the autorun card inserted; v1.2 moves
+  startup work to a separate service and removes the startup dialog.
 - **Connection timed out / no route:** check the USB connection and the computer's
   USB network interface. The target is `192.168.155.1`, not the computer's IP.
 - **Permission denied (publickey):** use the private client key belonging to the
@@ -202,9 +218,9 @@ Review logs before sharing them; they may contain authentication details.
 ## 7. Stop and remove
 
 Save your work, disconnect SSH with `exit`, then use a **normal MPC shutdown/
-reboot**. The temporary server/configuration do not survive reboot. To stay on
-stock startup, leave the autorun card out. Removing the card alone does not stop
-an already running SSH server. Back up/remove the personal `autorun` folder
+reboot**. The temporary server/configuration do not survive reboot. To boot
+without SSH, leave the autorun card out. Removing the card alone does
+not stop an already running SSH server. Back up/remove the personal `autorun` folder
 from the card on your computer when you no longer need it.
 
 ## Sharing and scope
@@ -214,8 +230,8 @@ folder, private keys or personal SSH logs.** Every person generates their own
 client key and a separate host key for their device.
 
 The script configures the existing sshd for root public-key login only, bound
-to the USB address. Password login and forwarding are disabled. Configuration
-and active credentials are copied to `/run`; diagnostic logs are written to SD.
+to the USB address. Password login and forwarding are disabled. Configuration,
+active credentials, logs and the temporary service are all under `/run`.
 It does not flash firmware, replace the stock app, restart `ac50.service`, or
 modify persistent SSH configuration. Normal OS activity may independently write
 to internal storage. A root shell can modify the device: this kit supplies access,
