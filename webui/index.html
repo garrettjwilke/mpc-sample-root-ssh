@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPC Sample Control Center</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-alt: #1f2430;
+      --border: #2c3344;
+      --accent: #ff3b30;
+      --accent-hover: #ff5247;
+      --green: #2ecc71;
+      --yellow: #f39c12;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.3px;
+    }
+    .badge {
+      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    .badge.ok { color: var(--green); border-color: rgba(46, 204, 113, 0.4); }
+    .badge.warn { color: var(--yellow); border-color: rgba(243, 156, 18, 0.4); }
+    nav {
+      display: flex;
+      gap: 6px;
+      padding: 0 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    nav button {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    nav button:hover { color: var(--text); }
+    nav button.active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+    main {
+      max-width: 1240px;
+      margin: 22px auto;
+      padding: 0 24px 48px;
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.secondary {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn.secondary:hover { background: #293040; }
+    .btn.sm { padding: 5px 10px; font-size: 12px; }
+    pre, textarea, input[type="text"] {
+      background: #0b0d11;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      padding: 10px 12px;
+    }
+    pre {
+      overflow-x: auto;
+      margin: 0;
+      max-height: 360px;
+      white-space: pre;
+    }
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+    }
+    input[type="text"], select {
+      background: #0b0d11;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill span.sz { color: var(--muted); font-size: 11px; }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      display: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>MPC SAMPLE // CONTROL CENTER</span>
+      <span id="hdr-pid" class="badge">MPC PID: ...</span>
+      <span id="hdr-sd" class="badge">SD: ...</span>
+    </div>
+    <div class="row" style="margin:0;">
+      <a class="btn secondary sm" href="http://192.168.155.1/" target="_blank">Stock Firmware Page</a>
+      <button class="btn secondary sm" onclick="refreshStatus()">Refresh Status</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="switchTab('system', this)">1. System & Mounts</button>
+    <button onclick="switchTab('tools', this)">2. Tools & Binaries (/media/MPC/bin)</button>
+    <button onclick="switchTab('ram', this)">3. Live RAM Investigator</button>
+    <button onclick="switchTab('scripts', this)">4. Scripts & Boot Hook (/media/MPC/scripts)</button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: SYSTEM & MOUNTS -->
+    <section id="tab-system" class="tab active">
+      <div class="grid">
+        <div class="card">
+          <h3>
+            <span>System & Uptime</span>
+            <button class="btn secondary sm" onclick="toggleSdExec()">Remount SD (exec)</button>
+          </h3>
+          <pre id="sys-overview">Loading...</pre>
+        </div>
+        <div class="card">
+          <h3>Memory Usage (free -m)</h3>
+          <pre id="sys-mem">Loading...</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Active Mounts (/media/MPC, /data, /factory, RAM bind-mounts)</h3>
+        <pre id="sys-mounts">Loading...</pre>
+      </div>
+
+      <div class="card">
+        <h3>Quick Root Command Runner</h3>
+        <div class="row">
+          <input type="text" id="quick-cmd" style="flex:1;" placeholder="e.g. file '/usr/bin/MPC Sample' or ls -la /media/MPC" onkeydown="if(event.key==='Enter')runQuickCmd()" />
+          <button class="btn" onclick="runQuickCmd()">Run as root</button>
+        </div>
+        <pre id="quick-out">Ready.</pre>
+      </div>
+    </section>
+
+    <!-- TAB 2: TOOLS & BINARIES -->
+    <section id="tab-tools" class="tab">
+      <div class="card">
+        <h3>
+          <span>One-Click Toolkit & Binary Installer</span>
+          <span id="bundle-status" class="badge">Checking bundle...</span>
+        </h3>
+        <p style="color:var(--muted); font-size:13px; margin-top:0;">
+          Install or restore the pre-packaged ARM64 toolkit (<code>file</code>, <code>vim</code>, <code>nano</code>, <code>rsync</code>, <code>htop</code>, <code>strace</code>, <code>lsof</code>, <code>tree</code>, <code>jq</code>, <code>xxd</code>, <code>curl</code>, <code>bash</code>, <code>gawk</code>, <code>gfind</code>, <code>less</code>, <code>busybox-full</code>, <code>mpc-memdump</code>) or upload individual ARM64 binaries directly to <code>/media/MPC/bin/</code>.
+        </p>
+        <div class="row">
+          <button class="btn" onclick="installBundledToolkit()">Extract / Repair Bundled ARM64 Toolkit</button>
+          <label class="btn secondary" style="cursor:pointer;">
+            Upload Binary to /media/MPC/bin/
+            <input type="file" id="upload-bin-input" style="display:none;" onchange="uploadBinary(this, 'bin')" />
+          </label>
+          <label class="btn secondary" style="cursor:pointer;">
+            Upload toolkit-bundle.tar.gz
+            <input type="file" id="upload-bundle-input" accept=".gz,.tgz,.tar" style="display:none;" onchange="uploadToolkitBundle(this)" />
+          </label>
+        </div>
+        <pre id="tools-log" style="display:none; margin-top:10px;"></pre>
+      </div>
+
+      <div class="card">
+        <h3>Installed Binaries in <code>/media/MPC/bin</code> (<span id="bin-count">0</span>)</h3>
+        <div id="bin-list" class="pill-list">Loading...</div>
+      </div>
+    </section>
+
+    <!-- TAB 3: LIVE RAM INVESTIGATOR -->
+    <section id="tab-ram" class="tab">
+      <div class="card">
+        <h3>
+          <span>MPC Sample Live Process Memory</span>
+          <div class="row" style="margin:0;">
+            <a id="dl-heap-btn" class="btn sm" href="#" target="_blank">Download Full [heap] (.tar)</a>
+            <a id="dl-app-btn" class="btn secondary sm" href="#" target="_blank">Download App + Heap (.tar)</a>
+          </div>
+        </h3>
+        <div class="row">
+          <label style="font-size:13px; color:var(--muted);">Region Filter:</label>
+          <select id="ram-filter" onchange="loadRamMaps()">
+            <option value="app">app (MPC Sample + [heap])</option>
+            <option value="heap">heap ([heap] only)</option>
+            <option value="rw">rw (All writable private/anon RAM)</option>
+            <option value="all">all (Every readable mapping)</option>
+          </select>
+          <button class="btn secondary sm" onclick="loadRamMaps()">Load Regions</button>
+        </div>
+        <pre id="ram-maps-out">Click "Load Regions" to view live virtual memory mappings...</pre>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Live RAM Search (ASCII String or 0xHEX)</h3>
+          <div class="row">
+            <input type="text" id="ram-search-q" style="flex:1;" placeholder="e.g. 1.3.0.12 or ProjectSaveLoadScreen or 0x7f454c46" onkeydown="if(event.key==='Enter')searchRam()" />
+            <button class="btn" onclick="searchRam()">Search RAM</button>
+          </div>
+          <pre id="ram-search-out">Enter a string or hex pattern to search live memory...</pre>
+        </div>
+
+        <div class="card">
+          <h3>Hex / Range Inspector & Downloader</h3>
+          <div class="row">
+            <input type="text" id="ram-addr" placeholder="Start Addr (e.g. 0xaaaaaaaa0000)" value="0xaaaaaaaa0000" style="width:190px;" />
+            <input type="text" id="ram-size" placeholder="Bytes (e.g. 256)" value="256" style="width:110px;" />
+            <button class="btn secondary sm" onclick="inspectRamRange()">Hexdump</button>
+            <button class="btn sm" onclick="downloadRamRange()">Download .bin</button>
+          </div>
+          <pre id="ram-range-out">Click "Hexdump" to inspect bytes at virtual address...</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SCRIPTS & BOOT HOOK -->
+    <section id="tab-scripts" class="tab">
+      <div class="card">
+        <h3>
+          <span>Script Editor (<code>/media/MPC/scripts/</code>)</span>
+          <div class="row" style="margin:0;">
+            <button class="btn secondary sm" onclick="loadScript('scripts/on-boot.sh')">Edit on-boot.sh</button>
+            <button class="btn secondary sm" onclick="promptNewScript()">+ New Script</button>
+          </div>
+        </h3>
+        <div id="script-pills" class="pill-list" style="margin-bottom:12px;"></div>
+        <div class="row">
+          <input type="text" id="script-path" value="scripts/on-boot.sh" style="flex:1;" />
+          <button class="btn secondary" onclick="loadScript(document.getElementById('script-path').value)">Load</button>
+          <button class="btn" onclick="saveScript()">Save & chmod +x</button>
+          <button class="btn secondary" onclick="runCurrentScript()">Run Script Now</button>
+        </div>
+        <textarea id="script-content" spellcheck="false" placeholder="Select or create a script..."></textarea>
+        <h3 style="margin-top:14px;">Script Execution Output</h3>
+        <pre id="script-out">No script run yet.</pre>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_HOST = window.location.hostname || '192.168.155.1';
+    const API_BASE = `http://${API_HOST}:8080`;
+
+    document.getElementById('dl-heap-btn').href = `${API_BASE}/api/ram/dump?filter=heap`;
+    document.getElementById('dl-app-btn').href = `${API_BASE}/api/ram/dump?filter=app`;
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = 'none'; }, 3500);
+    }
+
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+      if (name === 'ram' && document.getElementById('ram-maps-out').textContent.startsWith('Click')) {
+        loadRamMaps();
+      }
+      if (name === 'scripts' && !document.getElementById('script-content').value) {
+        loadScript('scripts/on-boot.sh');
+      }
+    }
+
+    function fmtBytes(b) {
+      if (!b) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let i = 0;
+      while (b >= 1024 && i < units.length - 1) { b /= 1024; i++; }
+      return `${b.toFixed(i > 1 ? 1 : 0)} ${units[i]}`;
+    }
+
+    async function refreshStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/status`);
+        const d = await res.json();
+        const pidEl = document.getElementById('hdr-pid');
+        pidEl.textContent = d.mpc_pid.trim() ? `MPC Sample PID: ${d.mpc_pid.trim()}` : 'MPC Sample: stopped';
+        pidEl.className = 'badge ' + (d.mpc_pid.trim() ? 'ok' : 'warn');
+
+        const sdEl = document.getElementById('hdr-sd');
+        sdEl.textContent = `SD: ${fmtBytes(d.sd_free_bytes)} free (${d.sd_exec ? 'exec' : 'noexec'})`;
+        sdEl.className = 'badge ' + (d.sd_exec ? 'ok' : 'warn');
+
+        document.getElementById('sys-overview').textContent =
+          `Kernel : ${d.uname.trim()}\nUptime : ${d.uptime.trim()}\nSD Card: ${fmtBytes(d.sd_free_bytes)} free of ${fmtBytes(d.sd_total_bytes)} (${d.sd_exec ? 'EXEC UNLOCKED' : 'NOEXEC'})`;
+        document.getElementById('sys-mem').textContent = d.memory.trim();
+        document.getElementById('sys-mounts').textContent = d.mounts.trim();
+
+        const bstat = document.getElementById('bundle-status');
+        bstat.textContent = d.has_toolkit_bundle ? 'Bundle cached on SD' : 'No bundle archive (tools installed directly)';
+        bstat.className = 'badge ' + (d.has_toolkit_bundle || d.bins.length > 5 ? 'ok' : 'warn');
+
+        const bins = (d.bins || []).sort((a, b) => a.name.localeCompare(b.name));
+        document.getElementById('bin-count').textContent = bins.length;
+        document.getElementById('bin-list').innerHTML = bins.map(b =>
+          `<div class="pill"><span>${b.name}</span><span class="sz">${fmtBytes(b.size)}</span></div>`
+        ).join('') || '<span style="color:var(--muted);">No binaries installed yet.</span>';
+
+        const scripts = (d.scripts || []).sort((a, b) => a.name.localeCompare(b.name));
+        document.getElementById('script-pills').innerHTML = scripts.map(s =>
+          `<button class="btn secondary sm" onclick="loadScript('scripts/${s.name}')">${s.name} (${fmtBytes(s.size)})</button>`
+        ).join('');
+      } catch (e) {
+        document.getElementById('sys-overview').textContent =
+          `Could not reach mpc-webui API at ${API_BASE}/api/status:\n${e.message}`;
+      }
+    }
+
+    async function execCmd(cmd) {
+      const res = await fetch(`${API_BASE}/api/exec`, { method: 'POST', body: cmd });
+      return await res.json();
+    }
+
+    async function toggleSdExec() {
+      const r = await execCmd('mount -o remount,exec /media/MPC && mount | grep /media/MPC');
+      toast('Remounted /media/MPC with exec');
+      refreshStatus();
+    }
+
+    async function runQuickCmd() {
+      const cmd = document.getElementById('quick-cmd').value.trim();
+      if (!cmd) return;
+      document.getElementById('quick-out').textContent = 'Running...';
+      const r = await execCmd(cmd);
+      document.getElementById('quick-out').textContent = `$ ${cmd}\n${r.output || '(no output)'}\n[exit code: ${r.exit_code}]`;
+      refreshStatus();
+    }
+
+    async function installBundledToolkit() {
+      const log = document.getElementById('tools-log');
+      log.style.display = 'block';
+      log.textContent = 'Extracting / verifying toolkit on /media/MPC ...';
+      const r = await execCmd(
+        'if [ -f /media/MPC/webui/toolkit-bundle.tar.gz ]; then ' +
+        'tar -xzf /media/MPC/webui/toolkit-bundle.tar.gz -C /media/MPC && chmod +x /media/MPC/bin/* && echo "Extracted toolkit-bundle.tar.gz successfully!"; ' +
+        'else chmod +x /media/MPC/bin/* 2>/dev/null || true; ls -la /media/MPC/bin; fi'
+      );
+      log.textContent = r.output;
+      toast('Toolkit ready in /media/MPC/bin!');
+      refreshStatus();
+    }
+
+    async function uploadBinary(input, dest) {
+      const file = input.files[0];
+      if (!file) return;
+      const log = document.getElementById('tools-log');
+      log.style.display = 'block';
+      log.textContent = `Uploading ${file.name} (${fmtBytes(file.size)}) to /media/MPC/${dest}/ ...`;
+      const res = await fetch(`${API_BASE}/api/upload?dest=${encodeURIComponent(dest)}&name=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        body: file
+      });
+      const d = await res.json();
+      log.textContent = JSON.stringify(d, null, 2);
+      toast(`Uploaded ${file.name} to /media/MPC/${dest}/`);
+      input.value = '';
+      refreshStatus();
+    }
+
+    async function uploadToolkitBundle(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const log = document.getElementById('tools-log');
+      log.style.display = 'block';
+      log.textContent = `Uploading toolkit bundle (${fmtBytes(file.size)})...`;
+      await fetch(`${API_BASE}/api/upload?dest=webui&name=toolkit-bundle.tar.gz`, {
+        method: 'POST',
+        body: file
+      });
+      input.value = '';
+      await installBundledToolkit();
+    }
+
+    async function loadRamMaps() {
+      const filter = document.getElementById('ram-filter').value;
+      document.getElementById('ram-maps-out').textContent = 'Reading /proc/<pid>/maps ...';
+      const res = await fetch(`${API_BASE}/api/ram/maps?filter=${encodeURIComponent(filter)}`);
+      const d = await res.json();
+      document.getElementById('ram-maps-out').textContent = d.output || 'No output';
+    }
+
+    async function searchRam() {
+      const q = document.getElementById('ram-search-q').value.trim();
+      const filter = document.getElementById('ram-filter').value;
+      if (!q) return;
+      document.getElementById('ram-search-out').textContent = `Searching live RAM (${filter}) for "${q}" ...`;
+      const res = await fetch(`${API_BASE}/api/ram/search?q=${encodeURIComponent(q)}&filter=${encodeURIComponent(filter)}`);
+      const d = await res.json();
+      document.getElementById('ram-search-out').textContent = d.output || 'No matches.';
+    }
+
+    async function inspectRamRange() {
+      const addr = document.getElementById('ram-addr').value.trim();
+      const size = document.getElementById('ram-size').value.trim();
+      document.getElementById('ram-range-out').textContent = `Reading ${size} bytes at ${addr} ...`;
+      const res = await fetch(`${API_BASE}/api/ram/range?addr=${encodeURIComponent(addr)}&size=${encodeURIComponent(size)}`);
+      const d = await res.json();
+      document.getElementById('ram-range-out').textContent = d.hexdump || 'Unreadable address';
+    }
+
+    function downloadRamRange() {
+      const addr = document.getElementById('ram-addr').value.trim();
+      const size = document.getElementById('ram-size').value.trim();
+      window.open(`${API_BASE}/api/ram/range?addr=${encodeURIComponent(addr)}&size=${encodeURIComponent(size)}&download=1`, '_blank');
+    }
+
+    async function loadScript(relPath) {
+      document.getElementById('script-path').value = relPath;
+      const res = await fetch(`${API_BASE}/api/file?path=${encodeURIComponent(relPath)}`);
+      const d = await res.json();
+      document.getElementById('script-content').value = d.content || '';
+      toast(`Loaded ${relPath}`);
+    }
+
+    async function saveScript() {
+      const relPath = document.getElementById('script-path').value.trim();
+      const content = document.getElementById('script-content').value;
+      await fetch(`${API_BASE}/api/file?path=${encodeURIComponent(relPath)}`, {
+        method: 'POST',
+        body: content
+      });
+      toast(`Saved ${relPath}`);
+      refreshStatus();
+    }
+
+    async function runCurrentScript() {
+      await saveScript();
+      const relPath = document.getElementById('script-path').value.trim();
+      document.getElementById('script-out').textContent = `Running /media/MPC/${relPath} ...`;
+      const r = await execCmd(`/bin/sh '/media/MPC/${relPath}'`);
+      document.getElementById('script-out').textContent = r.output + `\n[exit code: ${r.exit_code}]`;
+      refreshStatus();
+    }
+
+    function promptNewScript() {
+      const name = prompt('Enter script filename (inside /media/MPC/scripts/):', 'custom.sh');
+      if (!name) return;
+      document.getElementById('script-path').value = `scripts/${name.replace(/^scripts\//, '')}`;
+      document.getElementById('script-content').value = '#!/bin/sh\nset -eu\n\necho "Hello from MPC Sample!"\n';
+    }
+
+    refreshStatus();
+  </script>
+</body>
+</html>

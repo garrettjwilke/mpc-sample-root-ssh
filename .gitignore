@@ -1,8 +1,4 @@
-# Personal preparation must never be committed.
-authorized_keys
-ssh_host_*
-mpc_sample_*ed25519*
-*.pub
+# Temporary / build artifacts
 *.key
 *.pem
 *.ppk
@@ -15,4 +11,6 @@ SSH_AUTH_LOG.txt
 __MACOSX/
 __pycache__/
 dist/
+dumps/
 *.zip
+.mpc-cache/

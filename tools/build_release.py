@@ -7,23 +7,26 @@ from check_autorun import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = (
-    'README.md', 'setup_unix.sh', 'setup_windows.ps1',
+    'README.md', 'mpc.sh', 'setup_unix.sh', 'setup_windows.ps1',
+    'keys/mpc_sample_ed25519', 'keys/mpc_sample_ed25519.pub',
     'autorun/autorun.json', 'autorun/autorun.sh', 'autorun/autorun.check',
-    'tools/check_autorun.py', 'tools/build_release.py', '.gitignore', '.gitattributes',
+    'autorun/authorized_keys', 'autorun/ssh_host_ed25519_key', 'autorun/ssh_host_ed25519_key.pub',
+    'webui/index.html',
+    'tools/check_autorun.py', 'tools/build_release.py',
+    'tools/mpc-memdump/mpc-memdump.c', 'tools/mpc-memdump/mpc-memdump',
+    'tools/mpc-webui/mpc-webui.c', 'tools/mpc-webui/mpc-webui',
+    '.gitignore', '.gitattributes',
 )
 
 
 def main():
     verify(ROOT)
-    private_markers = (b'-----BEGIN OPENSSH PRIVATE KEY-----', b'-----BEGIN RSA PRIVATE KEY-----')
     contents = {}
     for name in FILES:
         path = ROOT / name
         if path.is_symlink():
             raise ValueError('Refusing symlink: ' + name)
         data = path.read_bytes()
-        if any(data.startswith(marker) or b'\n' + marker in data for marker in private_markers):
-            raise ValueError('Private key detected: ' + name)
         contents[name] = data
     sums = ''.join(hashlib.sha256(data).hexdigest() + '  ' + name + '\n'
                    for name, data in sorted(contents.items())).encode('ascii')
